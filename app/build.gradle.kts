@@ -5,7 +5,7 @@ plugins {
 
 android {
     namespace = "com.example.samplebeacon"
-    compileSdk = 33
+    compileSdk = 34
 
     defaultConfig {
         applicationId = "com.example.samplebeacon"
@@ -66,5 +66,6 @@ dependencies {
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
-    implementation ("org.altbeacon:android-beacon-library:2.20")
+    implementation ("org.altbeacon:android-beacon-library:2.19")
+    implementation ("androidx.navigation:navigation-compose:2.5.3")
 }
