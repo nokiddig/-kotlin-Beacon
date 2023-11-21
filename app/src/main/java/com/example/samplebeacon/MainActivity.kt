@@ -13,12 +13,14 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -158,7 +160,12 @@ fun HomeTab(navController: NavController) {
         mutableStateOf(0)
     }
     Scaffold (modifier = Modifier.padding(5.dp),
-        topBar = {TopAppBar(title = { Text(text = "Home")})},
+        topBar = {TopAppBar(title = { Text(text = "Home")},
+            navigationIcon = {
+                BackButton{
+                    navController.popBackStack()
+                }
+            })},
         content = { Column(modifier = Modifier.padding(it)) {
             Text(text = "hello")
         }},
@@ -185,4 +192,11 @@ fun HomeTab(navController: NavController) {
             }
         }
     )
+}
+
+@Composable
+fun BackButton(onclick: () -> Unit) {
+    IconButton(onClick = onclick) {
+        Icon(imageVector = Icons.Outlined.ArrowBack, contentDescription = null)
+    }
 }
