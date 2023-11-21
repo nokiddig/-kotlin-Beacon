@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Send
@@ -142,6 +143,7 @@ data class BottomNavItem(
 
 @Composable
 fun HomeTab(navController: NavController) {
+
     val  items = listOf<BottomNavItem>(
         BottomNavItem(
             title = "Home",
@@ -166,9 +168,11 @@ fun HomeTab(navController: NavController) {
                     navController.popBackStack()
                 }
             })},
-        content = { Column(modifier = Modifier.padding(it)) {
-            Text(text = "hello")
-        }},
+        content = {
+                  LazyColumn(modifier = Modifier.padding(it)) {
+
+                  }
+        },
         bottomBar = {
             NavigationBar {
                 items.forEachIndexed { index, item ->
@@ -187,7 +191,8 @@ fun HomeTab(navController: NavController) {
                                         else item.unSelectedIcon,
                                     contentDescription = item.title)
                             }
-                        })
+                        },
+                        label = {Text(text = item.title)})
                 }
             }
         }
