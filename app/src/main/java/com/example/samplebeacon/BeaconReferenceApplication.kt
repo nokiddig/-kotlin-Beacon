@@ -7,15 +7,15 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.Observer
 import org.altbeacon.beacon.*
-import org.altbeacon.bluetooth.BluetoothMedic
 
 class BeaconReferenceApplication: Application() {
     // the region definition is a wildcard that matches all beacons regardless of identifiers.
     // if you only want to detect beacons with a specific UUID, change the id1 parameter to
     // a UUID like Identifier.parse("2F234454-CF6D-4A0F-ADF2-F4911BA9FFA6")
     val uuid = Identifier.parse("2FF34454-CF6D-4A0F-ADF2-F4911BA9FFA6")
-    var region = Region("all-beacons", null, null, null)
-
+    var region = Region("all-beacons", uuid, null, null)
+    lateinit var beaconTransmitter:BeaconTransmitter
+    lateinit var parser:BeaconParser
     override fun onCreate() {
         super.onCreate()
 
@@ -26,20 +26,37 @@ class BeaconReferenceApplication: Application() {
         //beaconManager.getBeaconParsers().add(new BeaconParser().
         //        setBeaconLayout("m:0-1=4c00,i:2-24v,p:24-24"));
 
-        //beaconManager.getBeaconParsers().clear()
+        beaconManager.getBeaconParsers().clear()
         //BeaconManager.setDistanceModelUpdateUrl("")
-
-        val parser = BeaconParser().
+        parser = BeaconParser().
         setBeaconLayout("m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24")
         parser.setHardwareAssistManufacturerCodes(arrayOf(0x004c).toIntArray())
-        beaconManager.getBeaconParsers().add(
-            parser)
+        beaconManager.getBeaconParsers().add(parser)
 
         // BluetoothMedic.getInstance().legacyEnablePowerCycleOnFailures(this) // Android 4-12 only
         // BluetoothMedic.getInstance().enablePeriodicTests(this, BluetoothMedic.SCAN_TEST + BluetoothMedic.TRANSMIT_TEST)
+        // Tạo một transmitter
+
+        startTransmitter()
 
         setupBeaconScanning()
     }
+
+    public fun startTransmitter() {
+        beaconTransmitter = BeaconTransmitter(this, parser)
+        val beacon = Beacon.Builder()
+            .setId1(uuid.toString()) // UUID
+            .setId2("1") // major
+            .setId3("2") // minor
+            .build()
+        beaconTransmitter.startAdvertising()
+    }
+
+    public fun stopTransmitter() {
+        beaconTransmitter.stopAdvertising()
+    }
+
+
     fun setupBeaconScanning() {
         val beaconManager = BeaconManager.getInstanceForApplication(this)
         try {
