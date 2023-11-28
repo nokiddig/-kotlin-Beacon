@@ -137,7 +137,10 @@ class MainActivity : ComponentActivity() {
                         modifier = Modifier.fillMaxWidth()) {
                         Text(text = "Stop Broadcast")
                     }
-                    ScanResult(beaconList = scannedBeacons, Modifier.padding(it).height(200.dp))
+                    ScanResult(beaconList = scannedBeacons,
+                        Modifier
+                            .padding(it)
+                            .height(200.dp))
                     Button(
                         onClick = {
                         },
@@ -178,11 +181,25 @@ class MainActivity : ComponentActivity() {
     @Composable
     fun ScanResult(beaconList: MutableState<List<Beacon>>, modifier: Modifier) {
         var scannedBeacons by remember { mutableStateOf(beaconList) }
-
-        LazyColumn (modifier = Modifier.fillMaxWidth().height(200.dp).border(color = Color.Black, width = 2.dp)){
-            items(scannedBeacons.value) { beacon ->
-                // Hiển thị thông tin về beacon
-                Text("Beacon: ${beacon.toString()}")
+        if (scannedBeacons.value.isEmpty()){
+            LazyColumn (modifier = Modifier
+                .fillMaxWidth()
+                .height(200.dp)
+                .border(color = Color.Black, width = 2.dp)){
+                item {
+                    Text(text = "Scanning.....")
+                }
+            }
+        }
+        else {
+            LazyColumn (modifier = Modifier
+                .fillMaxWidth()
+                .height(200.dp)
+                .border(color = Color.Black, width = 2.dp)){
+                items(scannedBeacons.value) { beacon ->
+                    // Hiển thị thông tin về beacon
+                    Text("Beacon: ${beacon.toString()}")
+                }
             }
         }
 
