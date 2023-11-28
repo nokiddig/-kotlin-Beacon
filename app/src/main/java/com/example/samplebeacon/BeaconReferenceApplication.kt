@@ -1,17 +1,28 @@
 package com.example.samplebeacon
 
-import android.app.*
+import android.app.Application
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.app.TaskStackBuilder
+import android.bluetooth.le.AdvertiseCallback
+import android.bluetooth.le.AdvertiseSettings
 import android.content.Context
 import android.content.Intent
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.Observer
-import org.altbeacon.beacon.*
+import org.altbeacon.beacon.Beacon
+import org.altbeacon.beacon.BeaconManager
+import org.altbeacon.beacon.BeaconParser
+import org.altbeacon.beacon.BeaconTransmitter
+import org.altbeacon.beacon.Identifier
+import org.altbeacon.beacon.MonitorNotifier
+import org.altbeacon.beacon.Region
+
 
 class BeaconReferenceApplication: Application() {
-    // the region definition is a wildcard that matches all beacons regardless of identifiers.
-    // if you only want to detect beacons with a specific UUID, change the id1 parameter to
-    // a UUID like Identifier.parse("2F234454-CF6D-4A0F-ADF2-F4911BA9FFA6")
     val uuid = Identifier.parse("2FF34454-CF6D-4A0F-ADF2-F4911BA9FFA6")
     var region = Region("all-beacons", uuid, null, null)
     lateinit var beaconTransmitter:BeaconTransmitter
@@ -49,6 +60,45 @@ class BeaconReferenceApplication: Application() {
             .setId2("1") // major
             .setId3("2") // minor
             .build()
+        val beaconTransmitter = BeaconTransmitter(
+            applicationContext, BeaconParser()
+                .setBeaconLayout(BeaconParser.ALTBEACON_LAYOUT)
+        )
+
+// Xác định UUID, Major và Minor của Beacon
+
+// Xác định UUID, Major và Minor của Beacon
+        val uuid = "2F234454-CF6D-4A0F-ADF2-F4911BA9FFA6"
+        val major = 1
+        val minor = 2
+
+// Tạo định danh cho Beacon
+
+// Tạo định danh cho Beacon
+        val uuidIdentifier = Identifier.parse(uuid)
+        val majorIdentifier = Identifier.fromInt(major)
+        val minorIdentifier = Identifier.fromInt(minor)
+        val region = Region("my-beacon-region", uuidIdentifier, majorIdentifier, minorIdentifier)
+
+// Xác thực và phát tín hiệu Beacon
+
+// Xác thực và phát tín hiệu Beacon
+        beaconTransmitter.startAdvertising(Beacon.Builder()
+            .setId1(uuid)
+            .setId2(major.toString())
+            .setId3(minor.toString())
+            .setManufacturer(0x0118)
+            .setTxPower(-59)
+            .setDataFields(null)
+            .build(), object : AdvertiseCallback() {
+            override fun onStartSuccess(settingsInEffect: AdvertiseSettings) {
+                // Quá trình phát tín hiệu Beacon thành công
+            }
+
+            override fun onStartFailure(errorCode: Int) {
+                // Quá trình phát tín hiệu Beacon thất bại
+            }
+        })
         beaconTransmitter.startAdvertising()
     }
 
