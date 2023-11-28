@@ -35,6 +35,7 @@ class BeaconService(val context: Activity) {
             .setTxPower(-59) // Công suất phát tín hiệu
             .setDataFields(listOf(0L)) // Dữ liệu tùy chỉnh (nếu cần)
             .build()
+        onScanResult(listOf(beacon))
         beaconManager.addRangeNotifier { beacons, _ ->
             beacons.add(beacon)
             onScanResult(beacons.toList())
