@@ -3,13 +3,12 @@
 package com.example.samplebeacon
 
 import android.os.Bundle
-import android.util.Log
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -47,19 +46,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.Observer
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.samplebeacon.constant.ConstString
 import com.example.samplebeacon.constant.ConstStyle
+import com.example.samplebeacon.constant.ConstValue
 import com.example.samplebeacon.ui.theme.SampleBeaconTheme
 import org.altbeacon.beacon.Beacon
-import org.altbeacon.beacon.BeaconManager
 
 class MainActivity : ComponentActivity() {
-    lateinit var beaconService: BeaconService
+    private lateinit var beaconService: BeaconService
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -93,7 +91,7 @@ class MainActivity : ComponentActivity() {
     )
     @Composable
     fun HomeTab(navController: NavController) {
-        val  items = listOf<BottomNavItem>(
+        val  items = listOf(
             BottomNavItem(
                 title = "Home",
                 selectedIcon = Icons.Filled.Home,
@@ -110,7 +108,7 @@ class MainActivity : ComponentActivity() {
         var selectedIndex by rememberSaveable {
             mutableStateOf(0)
         }
-        var scannedBeacons = rememberSaveable { mutableStateOf(emptyList<Beacon>()) }
+        val scannedBeacons = rememberSaveable { mutableStateOf(emptyList<Beacon>()) }
 
         Scaffold (modifier = Modifier.padding(5.dp),
             topBar = {TopAppBar(title = { Text(text = "Home")},
@@ -121,58 +119,63 @@ class MainActivity : ComponentActivity() {
                 })},
             content = {
                 Column(Modifier.padding(top = 100.dp)) {
-                    Button(onClick = {
-                        var beacon:Beacon = Beacon.Builder()
-                            .setId1("2F234454-CF6D-4A0F-ADF2-F4911BA9FFA6") // UUID của Beacon
-                            .setId2("1") // Major
-                            .setId3("2") // Minor
-                            .setManufacturer(0xFFFF) // Nhà sản xuất (đây là ví dụ với nhà sản xuất AltBeacon)
-                            .setTxPower(-59) // Công suất phát tín hiệu
-                            .setDataFields(listOf(0L)) // Dữ liệu tùy chỉnh (nếu cần)
-                            .build()
-                        beaconService.startAdvertising(beacon)
-                    },
-                        modifier = Modifier.fillMaxWidth()) {
-                        Text(text = "Beacon Broadcast")
+                    Row (Modifier.fillMaxWidth()){
+                        Button(onClick = {
+                            val beacon:Beacon = Beacon.Builder()
+                                .setId1(ConstValue.UUID) // UUID của Beacon
+                                .setId2(ConstValue.MAJOR.toString()) // Major
+                                .setId3(ConstValue.MINOR.toString()) // Minor
+                                .setManufacturer(0xFFFF) // Nhà sản xuất (đây là ví dụ với nhà sản xuất AltBeacon)
+                                .setTxPower(-59) // Công suất phát tín hiệu
+                                .setDataFields(listOf(0L)) // Dữ liệu tùy chỉnh (nếu cần)
+                                .build()
+                            beaconService.startAdvertising(beacon)
+                        },
+                            modifier = Modifier.weight(1f)    ) {
+                            Text(text = "Beacon Broadcast")
+                        }
+                        Button(onClick = {
+                            beaconService.stopAdvertising()
+                        },
+                            modifier = Modifier.weight(1f)) {
+                            Text(text = "Stop Broadcast")
+                        }
                     }
-                    Button(onClick = {
-                        beaconService.stopAdvertising()
-                    },
-                        modifier = Modifier.fillMaxWidth()) {
-                        Text(text = "Stop Broadcast")
+                    Row (Modifier.fillMaxWidth()){
+                        Button(
+                            onClick = {
+                                beaconService.startScanBeacons { beacons ->
+                                    scannedBeacons.value = beacons
+                                }
+                            },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text(text = "Start scanning beacon")
+                        }
+                        Button(
+                            onClick = {
+                                beaconService.stopScanning()
+                            },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text(text = "Stop scanning beacon")
+                        }
                     }
                     ScanResult(beaconList = scannedBeacons,
                         Modifier
                             .padding(it)
                             .height(200.dp))
-                    Button(
-                        onClick = {
-//                            val regionViewModel = beaconService.getRegionViewModel()
-//                            regionViewModel.rangedBeacons.observe(this, rangingObserver)
-                            beaconService.startScanBeacons { beacons -> scannedBeacons.value = beacons }
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(text = "Start scanning beacon")
-                    }
-                    Button(
-                        onClick = {
-                            beaconService.stopScanning()
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(text = "Stop scanning beacon")
-                    }
-                    Button(
-                        onClick = {
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(text = "Start On Background")
-                    }
 
+
+                    Button(
+                        onClick = {
+                            beaconService.startInBackground(60000)
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(text = "Start in background 1 minute")
+                    }
                 }
-
             },
             bottomBar = {
                 NavigationBar {
@@ -200,20 +203,13 @@ class MainActivity : ComponentActivity() {
         )
     }
 
-    val rangingObserver = Observer<Collection<Beacon>> { beacons ->
-        Log.d("TAG", "Ranged: ${beacons.count()} beacons")
-        if (BeaconManager.getInstanceForApplication(this).rangedRegions.size > 0) {
-//            sendNotification("Phát hiện ${beacons.size} beacons")
-//            beaconViewModel.listBeacon.value = beacons.toList()
-        } else Toast.makeText(this, "Stop Ranging", Toast.LENGTH_SHORT).show()
-    }
     @Composable
     fun ScanResult(beaconList: MutableState<List<Beacon>>, modifier: Modifier) {
         var scannedBeacons by remember { mutableStateOf(beaconList) }
         if (scannedBeacons.value.isEmpty()){
             LazyColumn (modifier = Modifier
                 .fillMaxWidth()
-                .height(200.dp)
+                .height(ConstValue.HOME_LAZYCOLUMN_HEIGHT.dp)
                 .border(color = Color.Black, width = 2.dp)){
                 item {
                     Text(text = "Beacon not found")
@@ -223,11 +219,10 @@ class MainActivity : ComponentActivity() {
         else {
             LazyColumn (modifier = Modifier
                 .fillMaxWidth()
-                .height(200.dp)
+                .height(ConstValue.HOME_LAZYCOLUMN_HEIGHT.dp)
                 .border(color = Color.Black, width = 2.dp)){
                 items(scannedBeacons.value) { beacon ->
-                    // Hiển thị thông tin về beacon
-                    Text("Beacon: ${beacon.toString()}")
+                    Text("Beacon: $beacon")
                 }
             }
         }

@@ -17,7 +17,7 @@ class CheckPermission(val context: Activity) {
         bluetoothManager.adapter
     }
 
-    fun CheckBluetoothPermission(): Boolean {
+    fun checkBluetoothPermission(): Boolean {
         return if (bluetoothAdapter != null && bluetoothAdapter!!.isEnabled) {
             // Kiểm tra xem ứng dụng đã được cấp quyền truy cập Bluetooth hay chưa
             val permission = Manifest.permission.BLUETOOTH
