@@ -3,8 +3,10 @@
 package com.example.samplebeacon
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -54,15 +56,39 @@ import com.example.samplebeacon.constant.ConstString
 import com.example.samplebeacon.constant.ConstStyle
 import com.example.samplebeacon.constant.ConstValue
 import com.example.samplebeacon.ui.theme.SampleBeaconTheme
+import org.altbeacon.beacon.AltBeacon
 import org.altbeacon.beacon.Beacon
 
 class MainActivity : ComponentActivity() {
     private lateinit var beaconService: BeaconService
+    val TAG:String = "MainActivity"
+    val appPermission = AppPermission(this)
+    val requestPermissionsLauncher =
+        registerForActivityResult(
+            ActivityResultContracts.RequestMultiplePermissions()
+        ) { permissions ->
+            // Handle Permission granted/rejected
+            permissions.entries.forEach {
+                val permissionName = it.key
+                val isGranted = it.value
+                Log.d(TAG, "$permissionName permission granted: $isGranted")
+                if (isGranted) {
 
+                    // Permission is granted. Continue the action or workflow in your
+                    // app.
+                } else {
+                    // Explain to the user that the feature is unavailable because the
+                    // features requires a permission that the user has denied. At the
+                    // same time, respect the user's decision. Don't link to system
+                    // settings in an effort to convince the user to change their
+                    // decision.
+                }
+            }
+        }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         beaconService = BeaconService(this)
-
+        appPermission.checkPermissions()
         setContent {
             SampleBeaconTheme {
                 Surface(
@@ -74,6 +100,7 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
     @Composable
     fun MyApp() {
         val navController = rememberNavController()
@@ -121,7 +148,7 @@ class MainActivity : ComponentActivity() {
                 Column(Modifier.padding(top = 100.dp)) {
                     Row (Modifier.fillMaxWidth()){
                         Button(onClick = {
-                            val beacon:Beacon = Beacon.Builder()
+                            val beacon = AltBeacon.Builder()
                                 .setId1(ConstValue.UUID) // UUID của Beacon
                                 .setId2(ConstValue.MAJOR.toString()) // Major
                                 .setId3(ConstValue.MINOR.toString()) // Minor
@@ -165,8 +192,6 @@ class MainActivity : ComponentActivity() {
                         Modifier
                             .padding(it)
                             .height(200.dp))
-
-
                     Button(
                         onClick = {
                             beaconService.startInBackground(60000)
@@ -254,7 +279,7 @@ fun Greeting(name: String, navController: NavController) {
         Button(onClick = {
             navController.navigate(ConstString.ROUTE_HOME)
         }) {
-            Text(text = "Home")
+            Text(text = "Home screen")
         }
     }
 }

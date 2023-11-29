@@ -18,7 +18,7 @@ class BeaconService(val context: Activity) {
     private val beaconTransmitter: BeaconTransmitter = BeaconTransmitter(context, parser)
     private val beaconManager: BeaconManager = BeaconManager.getInstanceForApplication(context)
     private val region = Region("all-beacons", null, null, null)
-    private val checkPermission:CheckPermission = CheckPermission(context)
+    private val appPermission:AppPermission = AppPermission(context)
     private val TAG = "Beacon Service"
 
     init {
@@ -28,7 +28,7 @@ class BeaconService(val context: Activity) {
 
     fun startScanBeacons(onScanResult: (List<Beacon>) -> Unit) {
         // Thiết lập thời gian quét foreground (foreground scan) là 1 giây (1000ms)
-        beaconManager.foregroundBetweenScanPeriod = 1000L
+        beaconManager.foregroundBetweenScanPeriod = 1500L
         beaconManager.addRangeNotifier { beacons, region ->
             beacons?.let {
                 Toast.makeText(context, "Quét được ${it.size}", Toast.LENGTH_SHORT).show()
@@ -50,12 +50,7 @@ class BeaconService(val context: Activity) {
     fun startAdvertising(beacon: Beacon) {
         val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
          bluetoothAdapter?.isEnabled == true
-        val checkPermission = CheckPermission(context = context)
-        Log.d(TAG, checkPermission.checkBluetoothPermission().toString())
-        //stopAdvertising()
-        if (!CheckPermission(context = context).checkBluetoothPermission()){
-            CheckPermission(context = context).requestPermission(1)
-        }
+        //val appPermission = AppPermission(context = context)
         // Xác thực và phát tín hiệu Beacon
         beaconTransmitter.startAdvertising(beacon, object : AdvertiseCallback() {
             override fun onStartSuccess(settingsInEffect: AdvertiseSettings) {
