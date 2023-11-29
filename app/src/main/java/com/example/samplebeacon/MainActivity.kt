@@ -3,6 +3,8 @@
 package com.example.samplebeacon
 
 import android.os.Bundle
+import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.border
@@ -45,6 +47,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Observer
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -53,6 +56,7 @@ import com.example.samplebeacon.constant.ConstString
 import com.example.samplebeacon.constant.ConstStyle
 import com.example.samplebeacon.ui.theme.SampleBeaconTheme
 import org.altbeacon.beacon.Beacon
+import org.altbeacon.beacon.BeaconManager
 
 class MainActivity : ComponentActivity() {
     lateinit var beaconService: BeaconService
@@ -107,7 +111,7 @@ class MainActivity : ComponentActivity() {
             mutableStateOf(0)
         }
         var scannedBeacons = rememberSaveable { mutableStateOf(emptyList<Beacon>()) }
-        beaconService.scanBeacons { beacons -> scannedBeacons.value = beacons }
+
         Scaffold (modifier = Modifier.padding(5.dp),
             topBar = {TopAppBar(title = { Text(text = "Home")},
                 navigationIcon = {
@@ -143,11 +147,30 @@ class MainActivity : ComponentActivity() {
                             .height(200.dp))
                     Button(
                         onClick = {
+//                            val regionViewModel = beaconService.getRegionViewModel()
+//                            regionViewModel.rangedBeacons.observe(this, rangingObserver)
+                            beaconService.startScanBeacons { beacons -> scannedBeacons.value = beacons }
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(text = "Start scanning beacon")
+                    }
+                    Button(
+                        onClick = {
+                            beaconService.stopScanning()
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(text = "Stop scanning beacon")
+                    }
+                    Button(
+                        onClick = {
                         },
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text(text = "Start On Background")
                     }
+
                 }
 
             },
@@ -177,7 +200,13 @@ class MainActivity : ComponentActivity() {
         )
     }
 
-
+    val rangingObserver = Observer<Collection<Beacon>> { beacons ->
+        Log.d("TAG", "Ranged: ${beacons.count()} beacons")
+        if (BeaconManager.getInstanceForApplication(this).rangedRegions.size > 0) {
+//            sendNotification("Phát hiện ${beacons.size} beacons")
+//            beaconViewModel.listBeacon.value = beacons.toList()
+        } else Toast.makeText(this, "Stop Ranging", Toast.LENGTH_SHORT).show()
+    }
     @Composable
     fun ScanResult(beaconList: MutableState<List<Beacon>>, modifier: Modifier) {
         var scannedBeacons by remember { mutableStateOf(beaconList) }
@@ -187,7 +216,7 @@ class MainActivity : ComponentActivity() {
                 .height(200.dp)
                 .border(color = Color.Black, width = 2.dp)){
                 item {
-                    Text(text = "Scanning.....")
+                    Text(text = "Beacon not found")
                 }
             }
         }
@@ -215,8 +244,6 @@ class MainActivity : ComponentActivity() {
             Icon(imageVector = Icons.Outlined.ArrowBack, contentDescription = null)
         }
     }
-
-
 }
 
 @Composable

@@ -12,12 +12,13 @@ import org.altbeacon.beacon.BeaconParser
 import org.altbeacon.beacon.BeaconTransmitter
 import org.altbeacon.beacon.RangeNotifier
 import org.altbeacon.beacon.Region
+import org.altbeacon.beacon.RegionViewModel
 
 class BeaconService(val context: Activity) {
-    private val beaconParser = BeaconParser().setBeaconLayout(BeaconParser.ALTBEACON_LAYOUT)
+//    private val beaconParser = BeaconParser().setBeaconLayout(BeaconParser.ALTBEACON_LAYOUT)
     private val parser = BeaconParser().setBeaconLayout("m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24")
-    private val beaconTransmitter: BeaconTransmitter = BeaconTransmitter(context, beaconParser)
-    lateinit var beaconManager: BeaconManager
+    private val beaconTransmitter: BeaconTransmitter
+    private val beaconManager: BeaconManager
     private val uuid: String = "2F234454-CF6D-4A0F-ADF2-F4911BA9FFA6"
     private val major:Int = 1
     private val minor:Int = 2
@@ -26,10 +27,20 @@ class BeaconService(val context: Activity) {
 
     private val TAG = "Beacon Service"
 
-    fun scanBeacons(onScanResult: (List<Beacon>) -> Unit) {
+    init {
+        beaconTransmitter = BeaconTransmitter(context, parser)
         beaconManager = BeaconManager.getInstanceForApplication(context)
-        beaconManager.beaconParsers.add(beaconParser)
+        parser.setHardwareAssistManufacturerCodes(arrayOf(0x004c).toIntArray())
+        beaconManager.beaconParsers.add(parser)
+    }
 
+    fun getRegionViewModel():RegionViewModel{
+        return beaconManager.getRegionViewModel(region)
+    }
+
+    fun startScanBeacons(onScanResult: (List<Beacon>) -> Unit) {
+        // Thiết lập thời gian quét foreground (foreground scan) là 1 giây (1000ms)
+        beaconManager.foregroundBetweenScanPeriod = 1000L
         beaconManager.addRangeNotifier(object : RangeNotifier {
             override fun didRangeBeaconsInRegion(beacons: MutableCollection<Beacon>?, region: Region) {
                 beacons?.let {
@@ -74,7 +85,14 @@ class BeaconService(val context: Activity) {
         })
     }
 
+    fun startInBackground(timeout: Long) {
+        beaconManager.backgroundBetweenScanPeriod = timeout
+    }
     fun stopAdvertising() {
         beaconTransmitter.stopAdvertising()
+    }
+
+    fun stopScanning() {
+        beaconManager.stopRangingBeacons(region)
     }
 }
